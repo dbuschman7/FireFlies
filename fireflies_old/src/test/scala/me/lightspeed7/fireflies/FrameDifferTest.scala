@@ -1,23 +1,50 @@
 package me.lightspeed7.fireflies
 
-import org.scalatest.FunSuite
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
-import org.scalatest.junit.AssertionsForJUnit
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import java.io.File
-import scala.io.Source
-import co.davidbuschman.fireflies.VideoInfo
 
-@RunWith(classOf[JUnitRunner])
+import scala.util.{ Failure, Success }
+
+import org.scalatest.FunSuite
+import me.lightspeed7.fireflies.adapters.DistanceBoxerTool
+
 class FrameDifferTest extends FunSuite {
 
-  val image1File = new File("/Users/david/Pictures/tigger.jpeg")
-  val image2File = new File("/Users/david/Pictures/tigger2.jpeg")
+  import me.lightspeed7.fireflies.video._
 
-  
-  
-  
+  val dir = new File("/Users/david/Documents/fireflies")
+  val outputDir = new File(dir, "processed/GOPR0014")
+
+  val frames: Seq[Int] = Seq(460 -> 469, 1114 -> 1119, 1170 -> 1179).flatMap { case (s, e) => (s to e).map(identity) }
+
+  def genSlice(frame: Int): ImageSlice = {
+    val buff1 = loadImage(new File(outputDir, f"GOPR0014-${frame}%04d.png").getCanonicalPath).map { bi => Image(bi, frame) }
+    buff1 match {
+      case Failure(ex) => fail(ex.getMessage)
+      case Success(b1) => imageSlicer(b1, 1, 1).head
+    }
+  }
+
+  def genDiff(first: ImageSlice, second: ImageSlice): Option[ImageSlice] = generateImageDiff(first, second, 0.3f, 300)
+
+  def writeFile(slice: ImageSlice, output: File) = saveImage(slice.slice, "png", output)
+
+  test("Distance Images") {
+
+    import java.awt.{ Color => AwtColor }
+
+    val desired = new AwtColor(100, 100, 100)
+    val baseLine = new AwtColor(8, 8, 8)
+    val boxSide = 30
+
+    val list = frames.map { frame => (frame, genSlice(frame)) }
+    list.map {
+      case (frame, slice) =>
+        //        val filtered = DistanceBoxerTool.convert(slice.sliceAsImage, baseLine.getRGB, 100.0, boxSide)
+        val filtered = DeltaFilterTool.convert(slice.sliceAsImage, desired.getRGB, 20.0, boxSide)
+        val file = new File(outputDir, f"GOPR0014-${frame}%04d-diff.png")
+        writeFile(slice, file)
+    }
+
+  }
+
 }

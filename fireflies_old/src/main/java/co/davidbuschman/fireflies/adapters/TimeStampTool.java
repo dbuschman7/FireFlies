@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 
 import com.xuggle.mediatool.MediaToolAdapter;
+import com.xuggle.mediatool.event.IAudioSamplesEvent;
 import com.xuggle.mediatool.event.IVideoPictureEvent;
 
 /**
@@ -16,18 +17,28 @@ public class TimeStampTool extends MediaToolAdapter {
 	int frameCount = 0;
 
 	@Override
+	public void onAudioSamples(IAudioSamplesEvent event) {
+		super.onAudioSamples(event);		
+	}
+
+	@Override
 	public void onVideoPicture(IVideoPictureEvent event) {
 		++frameCount;
+
+		if (frameCount % 100 == 0) {
+			System.out.print(".");
+			if (frameCount % 1000 == 0) {
+				System.out.println();
+			}
+		}
 
 		// get the graphics for the image
 		Graphics2D g = event.getImage().createGraphics();
 
 		// establish the timestamp and how much space it will take
 
-		String timeStampStr = String.format("Frame :%04d : %s", frameCount,
-				event.getPicture().getFormattedTimeStamp());
-		Rectangle2D bounds = g.getFont().getStringBounds(timeStampStr,
-				g.getFontRenderContext());
+		String timeStampStr = String.format("Frame :%04d : %s", frameCount, event.getPicture().getFormattedTimeStamp());
+		Rectangle2D bounds = g.getFont().getStringBounds(timeStampStr, g.getFontRenderContext());
 
 		// compute the amount to inset the time stamp and translate the
 		// image to that position

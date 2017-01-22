@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 
 import com.xuggle.mediatool.MediaToolAdapter;
+import com.xuggle.mediatool.event.IAudioSamplesEvent;
 import com.xuggle.mediatool.event.IVideoPictureEvent;
 
 /**
@@ -13,6 +14,11 @@ public class GridDrawingTool extends MediaToolAdapter {
 	/** {@inheritDoc} */
 
 	int frameCount = 0;
+
+	@Override
+	public void onAudioSamples(IAudioSamplesEvent event) {
+		super.onAudioSamples(event);
+	}
 
 	@Override
 	public void onVideoPicture(IVideoPictureEvent event) {
@@ -30,7 +36,8 @@ public class GridDrawingTool extends MediaToolAdapter {
 		g.setColor(Color.DARK_GRAY);
 		for (int xPoint = size; xPoint < width; xPoint += size) {
 			for (int yPoint = size; yPoint < height; yPoint += size) {
-				// System.out.println(String.format("Grid point(x,y) : %d, %d", xPoint, yPoint));
+				// System.out.println(String.format("Grid point(x,y) : %d, %d",
+				// xPoint, yPoint));
 				// g.translate(xPoint, yPoint);
 				g.drawLine(xPoint, yPoint - offset, xPoint, yPoint + offset);
 				g.drawLine(xPoint - offset, yPoint, xPoint + offset, yPoint);
