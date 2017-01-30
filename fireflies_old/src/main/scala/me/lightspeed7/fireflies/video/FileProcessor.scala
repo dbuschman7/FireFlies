@@ -8,9 +8,8 @@ import scala.util.Try
 import com.xuggle.mediatool.ToolFactory
 
 import co.davidbuschman.fireflies.adapters.{ GridDrawingTool, TimeStampTool }
-import me.lightspeed7.fireflies.adapters.DistanceBoxerTool
 
-class FileProcessor(file: File, outputBase: File) {
+class FileProcessor(file: File, outputBase: File, detection:Boolean, tag: String) {
 
   import java.awt.{ Color => AwtColor }
 
@@ -23,7 +22,7 @@ class FileProcessor(file: File, outputBase: File) {
     out
   }
 
-  val outputFile = s"${outputDirectory.getCanonicalPath}/${fileNameBase}-output.mp4"
+  val outputFile = s"${outputDirectory.getCanonicalPath}/${fileNameBase}-${tag}.mp4"
   val diffOutFile = s"${outputDirectory.getCanonicalPath}/${fileNameBase}-diffs.mp4"
 
   //  val videoFile: VideoFile = loadVideoFile(file)
@@ -39,33 +38,29 @@ class FileProcessor(file: File, outputBase: File) {
   val writer = ToolFactory.makeWriter(outputFile, reader);
   //  val diffWriter = ToolFactory.makeWriter(diffOutFile, reader);
 
-  //  val grid = new GridDrawingTool
+  val grid = new GridDrawingTool
   val time = new TimeStampTool
-  val fetcher = new FrameFetcherTool(outputDirectory, fileNameBase, 460 -> 469, 1114 -> 1119, 1170 -> 1179)
-
-  val desired = new AwtColor(250, 250, 250)
-  val output = new AwtColor(8, 8, 8)
-  val threshold = 50.0
-
-  val filter = new DistanceBoxerTool(desired, threshold, 30)
-
-  val fetchOnly = false
 
   def processVideo = {
     val outCopy = new File(outputDirectory, fileName).getCanonicalPath
     copyOriginal(file.getCanonicalPath, outCopy)
 
     // wire up the listener chain 
-    val processing = if (fetchOnly) {
-      reader.addListener(fetcher)
-      fetcher
-    } else {
+    val processing = if (detection) {
+      val desired = new AwtColor(180, 180, 180)
+      //      val output = new AwtColor(8, 8, 8)
+      val threshold = 10.0
+      val boxSide = 30
+      val filter = new DeltaFilterTool(desired, threshold, boxSide)
       reader.addListener(filter)
       filter
+    } else {
+      reader
     }
 
-    time.addListener(processing)
-    processing.addListener(writer)
+    processing.addListener(time)
+    time.addListener(grid)
+    grid.addListener(writer)
 
     // read all the frames
     try {

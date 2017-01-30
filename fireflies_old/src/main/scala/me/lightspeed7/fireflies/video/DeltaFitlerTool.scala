@@ -6,14 +6,13 @@ import com.xuggle.mediatool.MediaToolAdapter
 import com.xuggle.mediatool.event.{ IAudioSamplesEvent, IVideoPictureEvent }
 import me.lightspeed7.fireflies.Color
 
-class DeltaFitlerTool(desired: java.awt.Color, output: java.awt.Color, threshold: Double, boxSide: Int) extends MediaToolAdapter {
+class DeltaFilterTool(desired: java.awt.Color, threshold: Double, boxSide: Int) extends MediaToolAdapter {
 
   import DeltaFilterTool._
 
   var frameCount = 0
 
   val desiredRGB = desired.getRGB
-  val outputRGB = output.getRGB
 
   override def onVideoPicture(event: IVideoPictureEvent): Unit = {
     frameCount += 1
