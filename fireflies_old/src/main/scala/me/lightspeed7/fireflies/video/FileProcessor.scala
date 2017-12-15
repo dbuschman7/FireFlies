@@ -22,8 +22,8 @@ class FileProcessor(file: File, outputBase: File, detection:Boolean, tag: String
     out
   }
 
-  val outputFile = s"${outputDirectory.getCanonicalPath}/${fileNameBase}-${tag}.mp4"
-  val diffOutFile = s"${outputDirectory.getCanonicalPath}/${fileNameBase}-diffs.mp4"
+  val outputFile = s"${outputDirectory.getCanonicalPath}/$fileNameBase-$tag.mp4"
+  val diffOutFile = s"${outputDirectory.getCanonicalPath}/$fileNameBase-diffs.mp4"
 
   //  val videoFile: VideoFile = loadVideoFile(file)
 

@@ -37,8 +37,9 @@ class ProcessVideoFilesTest extends FunSuite {
 
     val fileList = dir.listFiles()
       .filter(_.isFile)
-      .filter(_.getCanonicalPath.contains("MP4"))
-    //      .filter { f => findInt(f) > 96 }
+      .filter(_.getCanonicalPath.toLowerCase.contains("mp4"))
+//      .filter { f => findInt(f) > 140 }
+      .filter { f => println(f); f.getName.contains("Fossil")}
 
     implicit val system = ActorSystem("QuickStart")
     implicit val materializer = ActorMaterializer()
@@ -48,7 +49,7 @@ class ProcessVideoFilesTest extends FunSuite {
 
     val flow = source.mapAsyncUnordered(3) { f =>
       println(s"Processing file - ${f.getCanonicalPath}")
-      //      Future { new FileProcessor(f, output, true, "detection").processVideo }
+//      Future { new FileProcessor(f, output, true, "detection").processVideo }
       Future { new FileProcessor(f, output, false, "grids").processVideo }
     }.runWith(sink)
 

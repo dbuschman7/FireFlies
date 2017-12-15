@@ -43,7 +43,7 @@ object DeltaFilterTool {
       isGray: Boolean = Color.classify(color) == "Gray";
       diff: (Int, Int) = (x, y) if isGray && distance < threshold
     ) yield {
-      println(s"Drawing - ${diff} - ${boxSide} - distance ${distance}") //  - distance ${distance}
+      //println(s"Drawing - ${diff} - ${boxSide} - distance ${distance}") //  - distance ${distance}
       drawBox(image, diff._1, diff._2, boxSide)
     }
     image

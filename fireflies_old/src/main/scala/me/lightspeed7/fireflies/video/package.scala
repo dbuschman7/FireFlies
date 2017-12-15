@@ -128,7 +128,7 @@ package object video {
       val slice = new BufferedImage(second.w, second.h, BufferedImage.TYPE_INT_RGB)
       diffs.foreach { diff =>
         val color = second.slice.getRGB(diff._1, diff._2)
-        println(s"Diff color = ${color}")
+        println(s"Diff color = $color")
         slice.setRGB(diff._1, diff._2, color)
       }
       Some(second.copy(slice = slice))
