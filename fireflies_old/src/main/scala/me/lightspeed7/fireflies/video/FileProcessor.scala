@@ -4,18 +4,16 @@ import java.awt.image.BufferedImage
 import java.io.File
 
 import scala.util.Try
-
-import com.xuggle.mediatool.ToolFactory
-
-import co.davidbuschman.fireflies.adapters.{ GridDrawingTool, TimeStampTool }
+import com.xuggle.mediatool.{IMediaReader, IMediaWriter, ToolFactory}
+import co.davidbuschman.fireflies.adapters.TimeStampTool
 
 class FileProcessor(file: File, outputBase: File, detection:Boolean, tag: String) {
 
   import java.awt.{ Color => AwtColor }
 
-  val parts = file.getCanonicalPath.split('/').toSeq
-  val fileName = parts.last
-  val fileNameBase = fileName.split("\\.").apply(0)
+  val parts: Seq[String] = file.getCanonicalPath.split('/').toSeq
+  val fileName: String = parts.last
+  val fileNameBase: String = fileName.split("\\.").apply(0)
   val outputDirectory: File = {
     val out = new File(outputBase, fileNameBase)
     if (!out.exists) out.mkdirs
@@ -27,21 +25,21 @@ class FileProcessor(file: File, outputBase: File, detection:Boolean, tag: String
 
   //  val videoFile: VideoFile = loadVideoFile(file)
 
-  val reader = {
-    ToolFactory.setTurboCharged(true);
+  val reader: IMediaReader = {
+    ToolFactory.setTurboCharged(true)
 
     val r = ToolFactory.makeReader(file.getCanonicalPath)
-    r.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR);
+    r.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR)
     r
   }
 
-  val writer = ToolFactory.makeWriter(outputFile, reader);
+  val writer: IMediaWriter = ToolFactory.makeWriter(outputFile, reader)
   //  val diffWriter = ToolFactory.makeWriter(diffOutFile, reader);
 
-  val grid = new GridDrawingTool
+//  val grid = new GridDrawingTool
   val time = new TimeStampTool
 
-  def processVideo = {
+  def processVideo(): Unit = {
     val outCopy = new File(outputDirectory, fileName).getCanonicalPath
     copyOriginal(file.getCanonicalPath, outCopy)
 
@@ -59,8 +57,9 @@ class FileProcessor(file: File, outputBase: File, detection:Boolean, tag: String
     }
 
     processing.addListener(time)
-    time.addListener(grid)
-    grid.addListener(writer)
+//    time.addListener(grid)
+    time.addListener(writer)
+//    grid.addListener(writer)
 
     // read all the frames
     try {
@@ -72,7 +71,7 @@ class FileProcessor(file: File, outputBase: File, detection:Boolean, tag: String
     } catch {
       case ex: Throwable => println("Exception - Writing file"); ex.printStackTrace()
     } finally {
-      Thread.sleep(1000);
+      Thread.sleep(1000)
       if (writer != null)
         Try(writer.close()).recover { case ex => println("Exception - closing file"); ex.printStackTrace() }
     }

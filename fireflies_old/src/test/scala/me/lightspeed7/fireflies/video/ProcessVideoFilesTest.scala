@@ -2,55 +2,70 @@ package me.lightspeed7.fireflies.video
 
 import java.io.File
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
-import org.scalatest.Matchers.{ be, convertToAnyShouldWrapper }
+import org.scalatest.Matchers.{be, convertToAnyShouldWrapper}
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.scaladsl.{Sink, Source}
 import org.scalatest.junit.JUnitRunner
 import scala.concurrent.ExecutionContext
 
 @RunWith(classOf[JUnitRunner])
 class ProcessVideoFilesTest extends FunSuite {
 
-  val dir = new File("/Users/david/Documents/fireflies")
-  val output = new File(dir, "processed")
+//  val inDir = new File("/Volumes/Backups/fireflies")
+  val inDir = new File("/Users/david/Documents/fireflies")
+
+  val outDir = new File("/Users/david/Documents/fireflies")
+  val output = new File(outDir, "processed")
 
   def findInt(in: File): Int = {
-    val name = in.getName
-    val end = name.lastIndexOf('.')
-    name.substring(4, end).toInt
+
+    try {
+      val name = in.getName
+      val end = name.lastIndexOf('.')
+      name.substring(4, end).toInt
+    } catch {
+      case ex:Exception =>
+        println("Unable to find int id in filename")
+        -1
+    }
   }
 
   test("get file info for all files in directory") {
 
-    dir.isDirectory() should be(true)
-    dir.exists() should be(true)
+    inDir.isDirectory should be(true)
+    inDir.exists() should be(true)
+
+    outDir.isDirectory should be(true)
+    outDir.exists() should be(true)
 
     import ExecutionContext.Implicits.global
     import scala.collection.JavaConverters._
 
-    val fileList = dir.listFiles()
+    val fileList = inDir.listFiles()
       .filter(_.isFile)
       .filter(_.getCanonicalPath.toLowerCase.contains("mp4"))
-//      .filter { f => findInt(f) > 140 }
-      .filter { f => println(f); f.getName.contains("Fossil")}
+      .filter { f => Seq.range(486, 513).contains(findInt(f)) }
+    //      .filter { f => println(f); f.getName.contains("Fossil")}
 
-    implicit val system = ActorSystem("QuickStart")
-    implicit val materializer = ActorMaterializer()
+    implicit val system: ActorSystem = ActorSystem("Processing")
+    implicit val materializer: ActorMaterializer = ActorMaterializer()
 
     val source = Source.fromIterator(() => fileList.toIterator)
     val sink = Sink.foreach { f: Any => println("Completed") }
 
     val flow = source.mapAsyncUnordered(3) { f =>
       println(s"Processing file - ${f.getCanonicalPath}")
-//      Future { new FileProcessor(f, output, true, "detection").processVideo }
-      Future { new FileProcessor(f, output, false, "grids").processVideo }
+      //      Future { new FileProcessor(f, output, true, "detection").processVideo }
+      Future {
+        new FileProcessor(f, output, false, "grids").processVideo()
+      }
     }.runWith(sink)
 
     Await.result(flow, Duration.Inf)
